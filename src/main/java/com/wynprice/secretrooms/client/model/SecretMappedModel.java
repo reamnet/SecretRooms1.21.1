@@ -15,7 +15,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -66,7 +66,7 @@ public class SecretMappedModel extends SecretBlockModel {
         List<Vec3> vertices = this.getVertexPositions(texture);
         List<Vec3> clamped = this.clampVertexPositions(modelRange, vertices);
 
-        int size = DefaultVertexFormat.BLOCK.getIntegerSize();
+        int size = (DefaultVertexFormat.BLOCK.getVertexSize() / Integer.BYTES);
         int[] aint = new int[texture.getVertices().length];
         System.arraycopy(texture.getVertices(), 0, aint, 0, aint.length);
 
@@ -155,7 +155,7 @@ public class SecretMappedModel extends SecretBlockModel {
     }
 
     private List<Vec3> getVertexPositions(BakedQuad quad) {
-        int size = DefaultVertexFormat.BLOCK.getIntegerSize();
+        int size = (DefaultVertexFormat.BLOCK.getVertexSize() / Integer.BYTES);
         int[] aint = quad.getVertices();
 
         List<Vec3> out = new ArrayList<>();
@@ -179,8 +179,8 @@ public class SecretMappedModel extends SecretBlockModel {
 
         for (BakedQuad quad : modelQuads) {
             for (Vec3 vertexPos : this.getVertexPositions(quad)) {
-                setVec(min, vertexPos, Math::min);
-                setVec(max, vertexPos, Math::max);
+                min = combineVec(min, vertexPos, Math::min);
+                max = combineVec(max, vertexPos, Math::max);
             }
         }
 
@@ -189,10 +189,8 @@ public class SecretMappedModel extends SecretBlockModel {
         return bb;
     }
 
-    private void setVec(Vec3 toSet, Vec3 vertex, BiFunction<Double, Double, Double> cons) {
-        toSet.x = cons.apply(toSet.x, vertex.x);
-        toSet.y = cons.apply(toSet.y, vertex.y);
-        toSet.z = cons.apply(toSet.z, vertex.z);
+    private Vec3 combineVec(Vec3 value, Vec3 vertex, BiFunction<Double, Double, Double> operation) {
+        return new Vec3(operation.apply(value.x, vertex.x), operation.apply(value.y, vertex.y), operation.apply(value.z, vertex.z));
     }
 
 }

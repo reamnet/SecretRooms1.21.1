@@ -7,28 +7,23 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkSource;
-import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -38,21 +33,13 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.ticks.LevelTickAccess;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
-import java.util.function.BiPredicate;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 public class DummyIWorld implements LevelAccessor {
     private final LevelAccessor world;
@@ -155,12 +142,12 @@ public class DummyIWorld implements LevelAccessor {
     }
 
     @Override
-    public void gameEvent(GameEvent pEvent, Vec3 pPosition, GameEvent.Context pContext) {
+    public void gameEvent(Holder<GameEvent> pEvent, Vec3 pPosition, GameEvent.Context pContext) {
         this.world.gameEvent(pEvent, pPosition, pContext);
     }
 
     @Override
-    public void gameEvent(@org.jetbrains.annotations.Nullable Entity p_151549_, GameEvent p_151550_, BlockPos p_151551_) {
+    public void gameEvent(@org.jetbrains.annotations.Nullable Entity p_151549_, Holder<GameEvent> p_151550_, BlockPos p_151551_) {
         this.world.gameEvent(p_151549_, p_151550_, p_151551_);
     }
 
@@ -224,6 +211,9 @@ public class DummyIWorld implements LevelAccessor {
     public Holder<Biome> getUncachedNoiseBiome(int p_46809_, int p_46810_, int p_46811_) {
         return this.world.getUncachedNoiseBiome(p_46809_, p_46810_, p_46811_);
     }
+
+    @Override
+    public net.minecraft.world.flag.FeatureFlagSet enabledFeatures() { return this.world.enabledFeatures(); }
 
     @Override
     public boolean isClientSide() {

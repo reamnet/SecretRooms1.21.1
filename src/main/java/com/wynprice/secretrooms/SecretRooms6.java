@@ -1,42 +1,25 @@
 package com.wynprice.secretrooms;
 
-import com.wynprice.secretrooms.client.SecretModelHandler;
-import com.wynprice.secretrooms.client.SwitchProbeTooltip;
-import com.wynprice.secretrooms.client.SwitchProbeTooltipComponent;
-import com.wynprice.secretrooms.client.model.OneWayGlassModel;
-import com.wynprice.secretrooms.client.model.quads.TrueVisionBakedQuad;
+import com.wynprice.secretrooms.client.SecretRoomsClient;
 import com.wynprice.secretrooms.server.blocks.SecretBaseBlock;
 import com.wynprice.secretrooms.server.blocks.SecretBlocks;
-import com.wynprice.secretrooms.server.data.SecretBlockLootTableProvider;
-import com.wynprice.secretrooms.server.data.SecretBlockTagsProvider;
-import com.wynprice.secretrooms.server.data.SecretItemTagsProvider;
-import com.wynprice.secretrooms.server.data.SecretRecipeProvider;
-import com.wynprice.secretrooms.server.items.*;
+import com.wynprice.secretrooms.server.data.*;
+import com.wynprice.secretrooms.server.items.SecretItems;
+import com.wynprice.secretrooms.server.items.TrueVisionGogglesHandler;
 import com.wynprice.secretrooms.server.tileentity.SecretTileEntities;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
-import net.minecraft.tags.FluidTags;
-import net.minecraft.world.effect.MobEffectUtil;
-import net.minecraft.world.effect.MobEffects;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.block.Block;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
-import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -44,80 +27,54 @@ import org.apache.logging.log4j.Logger;
 public class SecretRooms6 {
     public static final String MODID = "secretroomsmod";
     public static final Logger LOGGER = LogManager.getLogger(MODID);
+    private static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
-    public SecretRooms6() {
-        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-        IEventBus forgeBus = MinecraftForge.EVENT_BUS;
-        
-        bus.addListener(this::gatherData);
-        SecretBlocks.REGISTRY.register(bus);
-        SecretItems.REGISTRY.register(bus);
-        SecretTileEntities.REGISTRY.register(bus);
-
-        bus.addListener(this::onRegisterReloads);
-
-        forgeBus.addListener(this::modifyBreakSpeed);
-        forgeBus.addListener(TrueVisionGogglesHandler::onLootTableLoad);
-        forgeBus.addListener(TrueVisionGogglesHandler::onPlayerTick);
-
-
-
-        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
-            bus.addListener(SecretModelHandler::onBlockColors);
-            bus.addListener(SecretModelHandler::onModelBaked);
-            bus.addListener(SecretModelHandler::onEntityModelRegistered);
-
-            bus.addListener(OneWayGlassModel::onModelsReady);
-            bus.addListener(TrueVisionBakedQuad::onTextureStitch);
-            bus.addListener(TrueVisionBakedQuad::onTextureStitched);
-            bus.addListener(SwitchProbe::onRegisterTooltipFactories);
-
-            forgeBus.addListener(SwitchProbe::appendHover);
-
-            forgeBus.addListener(TrueVisionGogglesClientHandler::onClientWorldLoad);
-            forgeBus.addListener(TrueVisionGogglesClientHandler::onClientWorldTick);
-        });
-
+    static {
+        TABS.register("secretrooms", () -> CreativeModeTab.builder()
+            .title(Component.translatable("itemGroup.secretroomsmod"))
+            .icon(() -> new ItemStack(SecretItems.CAMOUFLAGE_PASTE.get()))
+            .displayItems((parameters, output) -> SecretItems.REGISTRY.getEntries().forEach(item -> output.accept(item.get())))
+            .build());
     }
 
-
-    public static final CreativeModeTab TAB = new CreativeModeTab(-1, MODID) {
-        @Override
-        public ItemStack makeIcon() {
-            return new ItemStack(SecretItems.CAMOUFLAGE_PASTE.get());
+    public SecretRooms6(IEventBus bus) {
+        SecretBlocks.REGISTRY.register(bus);
+        SecretItems.ARMOR_MATERIALS.register(bus);
+        SecretItems.REGISTRY.register(bus);
+        SecretTileEntities.REGISTRY.register(bus);
+        TABS.register(bus);
+        bus.addListener(this::gatherData);
+        NeoForge.EVENT_BUS.addListener(this::modifyBreakSpeed);
+        NeoForge.EVENT_BUS.addListener(TrueVisionGogglesHandler::onLootTableLoad);
+        NeoForge.EVENT_BUS.addListener(TrueVisionGogglesHandler::onPlayerTick);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            SecretRoomsClient.register(bus);
         }
-    };
+    }
 
-    private boolean recurse = false;
+    private boolean recurse;
+
     public void modifyBreakSpeed(PlayerEvent.BreakSpeed event) {
-        if(recurse) {
-            return;
-        }
+        if (recurse) return;
         recurse = true;
-        {
+        try {
             Player player = event.getEntity();
-            event.getPosition().flatMap(pos ->
-                SecretBaseBlock.getMirrorState(player.level, pos).map(mirror -> player.getDigSpeed(mirror, pos))
-            ).ifPresent(event::setNewSpeed);
+            event.getPosition().flatMap(pos -> SecretBaseBlock.getMirrorState(player.level(), pos)
+                .map(mirror -> player.getDigSpeed(mirror, pos))).ifPresent(event::setNewSpeed);
+        } finally {
+            recurse = false;
         }
-        recurse = false;
     }
 
     public void gatherData(GatherDataEvent event) {
-        DataGenerator gen = event.getGenerator();
-        ExistingFileHelper helper = event.getExistingFileHelper();
-
-        gen.addProvider(event.includeServer(), new SecretRecipeProvider(gen));
-        gen.addProvider(event.includeServer(), new SecretItemTagsProvider(gen, helper));
-        gen.addProvider(event.includeServer(), new SecretBlockTagsProvider(gen, helper));
-        gen.addProvider(event.includeServer(), new SecretBlockLootTableProvider(gen));
-    }
-
-
-
-
-    public void onRegisterReloads(RegisterClientReloadListenersEvent event) {
-        ResourceManagerReloadListener listener = rm -> SecretItems.TRUE_VISION_GOGGLES.ifPresent(TrueVisionGoggles::refreshArmorModel);
-        event.registerReloadListener(listener);
+        var generator = event.getGenerator();
+        var output = generator.getPackOutput();
+        var lookup = event.getLookupProvider();
+        var helper = event.getExistingFileHelper();
+        var blocks = new SecretBlockTagsProvider(output, lookup, helper);
+        generator.addProvider(event.includeServer(), new SecretRecipeProvider(output, lookup));
+        generator.addProvider(event.includeServer(), blocks);
+        generator.addProvider(event.includeServer(), new SecretItemTagsProvider(output, lookup, blocks.contentsGetter(), helper));
+        generator.addProvider(event.includeServer(), new SecretBlockLootTableProvider(output, lookup));
     }
 }

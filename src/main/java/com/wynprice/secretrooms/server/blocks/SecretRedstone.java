@@ -6,7 +6,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -18,6 +17,11 @@ import java.util.List;
 import java.util.Set;
 
 public class SecretRedstone extends SecretBaseBlock {
+    public static final com.mojang.serialization.MapCodec<SecretRedstone> CODEC = simpleCodec(SecretRedstone::new);
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends SecretRedstone> codec() { return CODEC; }
+
 
     private static final IntegerProperty POWER = BlockStateProperties.POWER;
 
@@ -167,7 +171,7 @@ public class SecretRedstone extends SecretBaseBlock {
     }
 
     @Override
-    public boolean shouldCheckWeakPower(BlockState state, LevelReader world, BlockPos pos, Direction side) {
+    public boolean shouldCheckWeakPower(BlockState state, net.minecraft.world.level.SignalGetter world, BlockPos pos, Direction side) {
         return false;
     }
 

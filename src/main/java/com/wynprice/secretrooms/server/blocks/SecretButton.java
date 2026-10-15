@@ -7,7 +7,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -25,9 +24,15 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Random;
 
 public class SecretButton extends SecretBaseBlock {
+    public static final com.mojang.serialization.MapCodec<SecretButton> CODEC = com.mojang.serialization.codecs.RecordCodecBuilder.mapCodec(instance -> instance.group(
+        com.mojang.serialization.Codec.BOOL.optionalFieldOf("wooden", false).forGetter(block -> block.wooden), propertiesCodec()
+    ).apply(instance, (flag, properties) -> new SecretButton(properties, flag)));
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends SecretButton> codec() { return CODEC; }
+
 
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     private final boolean wooden;
@@ -49,7 +54,7 @@ public class SecretButton extends SecretBaseBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
         if (state.getValue(POWERED)) {
             return InteractionResult.SUCCESS;
         } else {
@@ -84,7 +89,7 @@ public class SecretButton extends SecretBaseBlock {
     }
 
     @Override
-    public boolean shouldCheckWeakPower(BlockState state, LevelReader world, BlockPos pos, Direction side) {
+    public boolean shouldCheckWeakPower(BlockState state, net.minecraft.world.level.SignalGetter world, BlockPos pos, Direction side) {
         return !state.getValue(POWERED);
     }
 

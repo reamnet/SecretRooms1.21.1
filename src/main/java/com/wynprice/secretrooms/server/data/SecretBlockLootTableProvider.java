@@ -1,108 +1,46 @@
 package com.wynprice.secretrooms.server.data;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-import com.mojang.datafixers.util.Pair;
+import com.wynprice.secretrooms.server.blocks.SecretBlocks;
 import com.wynprice.secretrooms.server.items.SecretItems;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.data.loot.BlockLoot;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.PackOutput;
+import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.storage.loot.LootPool;
-import net.minecraft.world.level.storage.loot.LootTable;
-import net.minecraft.world.level.storage.loot.LootTables;
-import net.minecraft.world.level.storage.loot.ValidationContext;
-import net.minecraft.world.level.storage.loot.entries.LootItem;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
-import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import static com.wynprice.secretrooms.server.blocks.SecretBlocks.*;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public class SecretBlockLootTableProvider extends LootTableProvider {
-
-    public SecretBlockLootTableProvider(DataGenerator dataGenerator) {
-        super(dataGenerator);
+    public SecretBlockLootTableProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookup) {
+        super(output, Set.of(), List.of(new SubProviderEntry(SecretRoomsBlockLootTables::new, LootContextParamSets.BLOCK)), lookup);
     }
 
-    @Override
-    protected void validate(Map<ResourceLocation, LootTable> map, ValidationContext validationtracker) {
-        map.forEach((res, table) -> LootTables.validate(validationtracker, res, table));
-    }
-
-    @Override
-    protected List<
-        Pair<Supplier<Consumer<BiConsumer<ResourceLocation, LootTable.Builder>>>, LootContextParamSet>> getTables() {
-        return ImmutableList.of(
-            Pair.of(SecretRoomsBlockLootTables::new, LootContextParamSets.BLOCK)
-        );
-    }
-
-    private static class SecretRoomsBlockLootTables implements Consumer<BiConsumer<ResourceLocation, LootTable.Builder>> {
-
-        private final Map<ResourceLocation, LootTable.Builder> lootTables = Maps.newHashMap();
+    private static class SecretRoomsBlockLootTables extends BlockLootSubProvider {
+        protected SecretRoomsBlockLootTables(HolderLookup.Provider registries) {
+            super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
+        }
 
         @Override
-        public void accept(BiConsumer<ResourceLocation, LootTable.Builder> consumer) {
-            this.lootTables.clear();
-            this.addTables();
-            this.lootTables.forEach(consumer);
-        }
-        
-        private void addTables() {
-            this.createBlockDrop(GHOST_BLOCK);
-            this.createBlockDrop(SECRET_STAIRS);
-            this.createBlockDrop(SECRET_LEVER);
-            this.createBlockDrop(SECRET_REDSTONE);
-            this.createBlockDrop(ONE_WAY_GLASS);
-            this.createBlockDrop(SECRET_WOODEN_BUTTON);
-            this.createBlockDrop(SECRET_STONE_BUTTON);
-            this.createBlockDrop(TORCH_LEVER);
-            this.createBlockDrop(WALL_TORCH_LEVER, SecretItems.TORCH_LEVER);
-            this.createBlockDrop(SECRET_PRESSURE_PLATE);
-            this.createBlockDrop(SECRET_PLAYER_PRESSURE_PLATE);
-            this.createDoorItemTable(SECRET_DOOR);
-            this.createDoorItemTable(SECRET_IRON_DOOR);
-            this.createBlockDrop(SECRET_CHEST);
-            this.createBlockDrop(SECRET_TRAPDOOR);
-            this.createBlockDrop(SECRET_IRON_TRAPDOOR);
-            this.createBlockDrop(SECRET_TRAPPED_CHEST);
-            this.createBlockDrop(SECRET_GATE);
-            this.createBlockDrop(SECRET_DAYLIGHT_DETECTOR);
-            this.createBlockDrop(SECRET_OBSERVER);
-            this.createBlockDrop(SECRET_CLAMBER);
+        protected void generate() {
+            SecretBlocks.REGISTRY.getEntries().forEach(holder -> {
+                var block = holder.get();
+                if (block == SecretBlocks.SECRET_DUMMY_BLOCK.get()) return;
+                if (block == SecretBlocks.SECRET_DOOR.get() || block == SecretBlocks.SECRET_IRON_DOOR.get()) {
+                    add(block, createDoorTable(block));
+                } else if (block == SecretBlocks.WALL_TORCH_LEVER.get()) {
+                    dropOther(block, SecretItems.TORCH_LEVER.get());
+                } else {
+                    dropSelf(block);
+                }
+            });
         }
 
-        private void createBlockDrop(Supplier<Block> block) {
-            createBlockDrop(block, block);
-        }
-
-        private void createBlockDrop(Supplier<Block> block, Supplier<? extends ItemLike> item) {
-            this.lootTables.put(block.get().getLootTable(), createSingleItemTable(item.get()));
-        }
-
-        private LootTable.Builder createSingleItemTable(ItemLike item) {
-            return LootTable.lootTable()
-                .withPool(
-                    LootPool.lootPool()
-                        .setRolls(ConstantValue.exactly(1))
-                        .add(LootItem.lootTableItem(item))
-                        .when(ExplosionCondition.survivesExplosion())
-                );
-        }
-
-        private void createDoorItemTable(Supplier<Block> block) {
-            this.lootTables.put(block.get().getLootTable(), BlockLoot.createDoorTable(block.get()));
+        @Override
+        protected Iterable<net.minecraft.world.level.block.Block> getKnownBlocks() {
+            return SecretBlocks.REGISTRY.getEntries().stream().<net.minecraft.world.level.block.Block>map(holder -> holder.get()).toList();
         }
     }
-
 }

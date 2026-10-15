@@ -1,12 +1,11 @@
 package com.wynprice.secretrooms.server.blocks;
 
-import com.google.common.collect.ImmutableMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import com.mojang.serialization.MapCodec;
 import com.wynprice.secretrooms.server.blocks.states.OneWayGlassState;
 import com.wynprice.secretrooms.server.data.SecretBlockTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -25,6 +24,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import javax.annotation.Nullable;
 
 public class OneWayGlass extends SecretBaseBlock {
+    public static final com.mojang.serialization.MapCodec<OneWayGlass> CODEC = simpleCodec(OneWayGlass::new);
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends OneWayGlass> codec() { return CODEC; }
+
 
     private static final BooleanProperty NORTH = PipeBlock.NORTH;
     private static final BooleanProperty EAST = PipeBlock.EAST;
@@ -47,7 +51,7 @@ public class OneWayGlass extends SecretBaseBlock {
     }
 
     @Override
-    protected BlockState createNewState(Block block, ImmutableMap<Property<?>, Comparable<?>> propertiesToValueMap, MapCodec<BlockState> codec) {
+    protected BlockState createNewState(Block block, Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertiesToValueMap, MapCodec<BlockState> codec) {
         return new OneWayGlassState(block, propertiesToValueMap, codec);
     }
 
@@ -68,8 +72,8 @@ public class OneWayGlass extends SecretBaseBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-        if(player.getItemInHand(handIn).isEmpty()) {
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
+        if(player.getMainHandItem().isEmpty()) {
             worldIn.setBlock(pos, state.cycle(PipeBlock.PROPERTY_BY_DIRECTION.get(hit.getDirection())), 3);
             BlockEntity tileEntity = worldIn.getBlockEntity(pos);
             if(tileEntity != null) {
@@ -77,7 +81,7 @@ public class OneWayGlass extends SecretBaseBlock {
             }
             return InteractionResult.SUCCESS;
         }
-        return super.use(state, worldIn, pos, player, handIn, hit);
+        return super.useWithoutItem(state, worldIn, pos, player, hit);
     }
 
     @Override

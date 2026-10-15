@@ -10,8 +10,8 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.event.TickEvent;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 public class TrueVisionGogglesClientHandler {
 
@@ -21,10 +21,7 @@ public class TrueVisionGogglesClientHandler {
         clientWearingItem = isWearingGoggles(event.getPlayer());
     }
 
-    public static void onClientWorldTick(TickEvent.ClientTickEvent event) {
-        if(event.phase != TickEvent.Phase.START) {
-            return;
-        }
+    public static void onClientWorldTick(ClientTickEvent.Pre event) {
         LocalPlayer player = Minecraft.getInstance().player;
         if(player == null) return;
         boolean wearing = isWearingGoggles(player);
@@ -51,6 +48,6 @@ public class TrueVisionGogglesClientHandler {
     }
 
     public static boolean isWearingGoggles(Player player) {
-        return player.getItemBySlot(EquipmentSlot.HEAD).getItem() == SecretItems.TRUE_VISION_GOGGLES.get();
+        return player != null && player.getItemBySlot(EquipmentSlot.HEAD).getItem() == SecretItems.TRUE_VISION_GOGGLES.get();
     }
 }

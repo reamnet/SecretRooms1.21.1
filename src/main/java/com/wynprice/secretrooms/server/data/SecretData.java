@@ -6,7 +6,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -39,17 +38,17 @@ public class SecretData {
     }
 
     public void readNBT(CompoundTag tag) {
-        this.setBlockState(NbtUtils.readBlockState(tag.getCompound("blockstate")));
+        this.setBlockState(NbtUtils.readBlockState(net.minecraft.core.registries.BuiltInRegistries.BLOCK.asLookup(), tag.getCompound("blockstate")));
         this.setTileEntityNBT(tag.getCompound("tile_data"));
     }
 
     public BlockEntity getTileEntityCache() {
-        if(this.tileEntityNBT != null && this.tileEntityCache == null) {
-            if ((this.tileEntityCache = BlockEntity.loadStatic(this.base.getBlockPos(), this.blockState, this.tileEntityNBT)) != null) {
+        if(this.base != null && this.base.getLevel() != null && this.tileEntityNBT != null && this.tileEntityCache == null) {
+            if ((this.tileEntityCache = BlockEntity.loadStatic(this.base.getBlockPos(), this.blockState, this.tileEntityNBT, this.base.getLevel().registryAccess())) != null) {
                 if(this.base != null) {
                     this.tileEntityCache.setLevel(this.base.getLevel());
                 }
-                this.tileEntityCache.blockState = this.blockState;
+                this.tileEntityCache.setBlockState(this.blockState);
             } else {
                 SecretRooms6.LOGGER.warn("Unable to create Block Entity with id {}. Disregarding it from future references ", this.tileEntityNBT.getString("id"));
                 this.tileEntityNBT = null;
@@ -87,6 +86,7 @@ public class SecretData {
 
     private void onChanged() {
         if(this.base != null && this.base.getLevel() != null) {
+            this.base.setChanged();
             Level world = this.base.getLevel();
             if(world.isClientSide) {
                 this.base.requestModelDataUpdate();

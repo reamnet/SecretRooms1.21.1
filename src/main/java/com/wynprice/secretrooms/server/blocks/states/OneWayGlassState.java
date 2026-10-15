@@ -1,6 +1,6 @@
 package com.wynprice.secretrooms.server.blocks.states;
 
-import com.google.common.collect.ImmutableMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import com.mojang.serialization.MapCodec;
 import com.wynprice.secretrooms.client.world.DelegateWorld;
 import com.wynprice.secretrooms.server.blocks.SecretBaseBlock;
@@ -19,7 +19,7 @@ import java.util.Optional;
 
 public class OneWayGlassState extends SecretBaseState {
 
-    public OneWayGlassState(Block block, ImmutableMap<Property<?>, Comparable<?>> propertiesToValueMap, MapCodec<BlockState> codec) {
+    public OneWayGlassState(Block block, Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertiesToValueMap, MapCodec<BlockState> codec) {
         super(block, propertiesToValueMap, codec);
     }
 

@@ -4,12 +4,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -18,6 +16,11 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 public class SecretLever extends SecretBaseBlock {
+    public static final com.mojang.serialization.MapCodec<SecretLever> CODEC = simpleCodec(SecretLever::new);
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends SecretLever> codec() { return CODEC; }
+
     private static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     public SecretLever(Properties properties) {
         super(properties);
@@ -25,7 +28,7 @@ public class SecretLever extends SecretBaseBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult ray) {
+    public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult ray) {
         state = state.cycle(POWERED);
         boolean isPowered = state.getValue(POWERED);
         if (world.isClientSide) {
@@ -52,7 +55,7 @@ public class SecretLever extends SecretBaseBlock {
     }
 
     @Override
-    public boolean shouldCheckWeakPower(BlockState state, LevelReader world, BlockPos pos, Direction side) {
+    public boolean shouldCheckWeakPower(BlockState state, net.minecraft.world.level.SignalGetter world, BlockPos pos, Direction side) {
         return !state.getValue(POWERED);
     }
 

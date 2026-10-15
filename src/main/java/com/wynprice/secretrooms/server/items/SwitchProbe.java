@@ -21,8 +21,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
-import net.minecraftforge.client.event.RenderTooltipEvent;
+import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
+import net.neoforged.neoforge.client.event.RenderTooltipEvent;
 
 import java.util.Optional;
 
@@ -48,7 +48,7 @@ public class SwitchProbe extends Item {
         Optional<SecretData> data = SecretBaseBlock.getMirrorData(context.getLevel(), context.getClickedPos());
         BlockState state = context.getLevel().getBlockState(context.getClickedPos());
         if(data.isPresent()) {
-            CompoundTag compound = stack.getOrCreateTag().getCompound(PROBE_HIT_DATA);
+            CompoundTag compound = getProbeData(stack);
             if(!compound.isEmpty()) {
                 SecretData d = new SecretData(null);
                 d.readNBT(compound);
@@ -69,11 +69,16 @@ public class SwitchProbe extends Item {
             SecretData d = new SecretData(null);
             d.setBlockState(state);
             BlockEntity tileEntity = context.getLevel().getBlockEntity(context.getClickedPos());
-            d.setTileEntityNBT(tileEntity != null ? tileEntity.serializeNBT() : null);
+            d.setTileEntityNBT(tileEntity != null ? tileEntity.saveWithFullMetadata(context.getLevel().registryAccess()) : null);
 
-            d.writeNBT(stack.getOrCreateTagElement(PROBE_HIT_DATA));
+            net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> tag.put(PROBE_HIT_DATA, d.writeNBT(new CompoundTag())));
         }
         return InteractionResult.SUCCESS;
+    }
+
+    public static CompoundTag getProbeData(ItemStack stack) {
+        return stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+            net.minecraft.world.item.component.CustomData.EMPTY).copyTag().getCompound(PROBE_HIT_DATA);
     }
 
     public static void onRegisterTooltipFactories(RegisterClientTooltipComponentFactoriesEvent event) {
@@ -87,7 +92,7 @@ public class SwitchProbe extends Item {
         ItemStack stack = event.getItemStack();
         var elements = event.getTooltipElements();
 
-        CompoundTag compound = stack.getOrCreateTag().getCompound(PROBE_HIT_DATA);
+        CompoundTag compound = getProbeData(stack);
         elements.add(Either.right(new SwitchProbeTooltipComponent(
             Component.translatable(SecretRooms6.MODID + ".probe.containedblock").withStyle(ChatFormatting.GOLD).getVisualOrderText(),
             stack

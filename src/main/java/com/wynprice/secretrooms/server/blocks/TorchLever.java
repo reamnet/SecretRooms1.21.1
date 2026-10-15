@@ -5,7 +5,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
@@ -19,16 +18,21 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 public class TorchLever extends TorchBlock {
+    public static final com.mojang.serialization.MapCodec<TorchLever> CODEC = simpleCodec(TorchLever::new);
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends TorchLever> codec() { return CODEC; }
+
 
     private static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 
     protected TorchLever(Properties properties) {
-        super(properties, ParticleTypes.FLAME);
+        super(ParticleTypes.FLAME, properties);
         this.registerDefaultState(this.defaultBlockState().setValue(POWERED, false));
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult ray) {
+    public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult ray) {
         state = state.cycle(POWERED);
         boolean isPowered = state.getValue(POWERED);
         if (world.isClientSide) {

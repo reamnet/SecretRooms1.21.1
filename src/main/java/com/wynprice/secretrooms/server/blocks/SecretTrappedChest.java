@@ -5,11 +5,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class SecretTrappedChest extends SecretChest {
+    public static final com.mojang.serialization.MapCodec<SecretTrappedChest> CODEC = simpleCodec(SecretTrappedChest::new);
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends SecretTrappedChest> codec() { return CODEC; }
+
 
     public SecretTrappedChest(Properties properties) {
         super(properties);
@@ -30,7 +34,7 @@ public class SecretTrappedChest extends SecretChest {
     }
 
     @Override
-    public boolean shouldCheckWeakPower(BlockState state, LevelReader world, BlockPos pos, Direction side) {
+    public boolean shouldCheckWeakPower(BlockState state, net.minecraft.world.level.SignalGetter world, BlockPos pos, Direction side) {
         return false;
     }
 

@@ -13,6 +13,6 @@ public class SecretItemTags {
     public static final TagKey<Item> CLEAR_GLASS = tag("clear_glass");
 
     private static TagKey<Item> tag(String id) {
-        return ItemTags.create(new ResourceLocation(SecretRooms6.MODID, id));
+        return ItemTags.create(ResourceLocation.fromNamespaceAndPath(SecretRooms6.MODID, id));
     }
 }

@@ -1,6 +1,7 @@
 package com.wynprice.secretrooms.server.tileentity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
@@ -11,12 +12,15 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 
 public class SecretChestTileEntity extends SecretTileEntity implements Container, MenuProvider {
-    private final ItemStackHandler handler = new ItemStackHandler(27);
+    private final ItemStackHandler handler = new ItemStackHandler(27) {
+        @Override
+        protected void onContentsChanged(int slot) { SecretChestTileEntity.this.setChanged(); }
+    };
     private int numPlayersUsing;
 
     public SecretChestTileEntity(BlockPos pos, BlockState state) {
@@ -24,15 +28,15 @@ public class SecretChestTileEntity extends SecretTileEntity implements Container
     }
 
     @Override
-    public void load(CompoundTag nbt) {
-        this.handler.deserializeNBT(nbt.getCompound("Items"));
-        super.load(nbt);
+    public void loadAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
+        this.handler.deserializeNBT(registries, nbt.getCompound("Items"));
+        super.loadAdditional(nbt, registries);
     }
 
     @Override
-    public void saveAdditional(CompoundTag compound) {
-        compound.put("Items", this.handler.serializeNBT());
-        super.saveAdditional(compound);
+    public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+        compound.put("Items", this.handler.serializeNBT(registries));
+        super.saveAdditional(compound, registries);
     }
 
     @Override
@@ -94,7 +98,7 @@ public class SecretChestTileEntity extends SecretTileEntity implements Container
 
     @Override
     public ItemStack removeItem(int index, int count) {
-        return this.handler.getStackInSlot(index).split(count);
+        return this.handler.extractItem(index, count, false);
     }
 
     @Override
@@ -111,7 +115,7 @@ public class SecretChestTileEntity extends SecretTileEntity implements Container
 
     @Override
     public boolean stillValid(Player player) {
-        return true;
+        return Container.stillValidBlockEntity(this, player);
     }
 
     @Override

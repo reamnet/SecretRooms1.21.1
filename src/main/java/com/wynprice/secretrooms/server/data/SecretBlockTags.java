@@ -11,6 +11,6 @@ public class SecretBlockTags {
     public static final TagKey<Block> ONE_WAY_GLASS_CULL = tag("one_way_glass_cull");
 
     public static TagKey<Block> tag(String id) {
-        return BlockTags.create(new ResourceLocation(SecretRooms6.MODID, id));
+        return BlockTags.create(ResourceLocation.fromNamespaceAndPath(SecretRooms6.MODID, id));
     }
 }

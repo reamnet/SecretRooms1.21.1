@@ -1,6 +1,7 @@
 {
-    "pack": {
-        "description": "examplemod resources",
-        "pack_format": 8
-    }
+  "pack": {
+    "description": "Secret Rooms resources and data",
+    "pack_format": 34,
+    "supported_formats": { "min_inclusive": 34, "max_inclusive": 48 }
+  }
 }

@@ -11,12 +11,12 @@ import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.ModelEvent;
-import net.minecraftforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -39,8 +39,8 @@ public class SecretModelHandler {
         );
     }
 
-    public static void onModelBaked(ModelEvent.BakingCompleted event) {
-        Map<ResourceLocation, BakedModel> registry = event.getModels();
+    public static void onModelBaked(ModelEvent.ModifyBakingResult event) {
+        Map<ModelResourceLocation, BakedModel> registry = event.getModels();
 
         put(registry, SecretBlockModel::new,
             GHOST_BLOCK.get(), SECRET_STAIRS.get(), SECRET_LEVER.get(), SECRET_REDSTONE.get(), SECRET_WOODEN_BUTTON.get(), SECRET_STONE_BUTTON.get(),
@@ -52,7 +52,7 @@ public class SecretModelHandler {
         put(registry, OneWayGlassModel::new, ONE_WAY_GLASS.get());
     }
 
-    private static void put(Map<ResourceLocation, BakedModel> registry, Function<BakedModel, BakedModel> creator, Block... blocks) {
+    private static void put(Map<ModelResourceLocation, BakedModel> registry, Function<BakedModel, BakedModel> creator, Block... blocks) {
         for (Block block : blocks) {
             for (BlockState state : block.getStateDefinition().getPossibleStates()) {
                 registry.put(BlockModelShaper.stateToModelLocation(state), creator.apply(registry.get(BlockModelShaper.stateToModelLocation(state))));

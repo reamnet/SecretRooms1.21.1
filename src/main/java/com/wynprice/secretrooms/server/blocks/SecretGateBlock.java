@@ -18,9 +18,13 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
-import java.util.Random;
 
 public class SecretGateBlock extends SecretBaseBlock {
+    public static final com.mojang.serialization.MapCodec<SecretGateBlock> CODEC = simpleCodec(SecretGateBlock::new);
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends SecretGateBlock> codec() { return CODEC; }
+
 
     private static final int MAX_LEVELS = 10;
 
@@ -78,7 +82,7 @@ public class SecretGateBlock extends SecretBaseBlock {
             BlockPos off = pos.relative(direction, i);
 
             BlockState state = world.getBlockState(off);
-            if(!state.getMaterial().isReplaceable() && state.getBlock() != SecretBlocks.SECRET_DUMMY_BLOCK.get()) { //TODO: move to BlockState#isReplaceable
+            if(!state.canBeReplaced() && state.getBlock() != SecretBlocks.SECRET_DUMMY_BLOCK.get()) { //TODO: move to BlockState#isReplaceable
                 if(state.getBlock() == this) {
                     world.setBlockAndUpdate(off, state.setValue(OPEN, true));
                     world.scheduleTick(off, this, 3);

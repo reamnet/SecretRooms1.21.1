@@ -1,12 +1,11 @@
 package com.wynprice.secretrooms.server.blocks;
 
-import com.google.common.collect.ImmutableMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import com.mojang.serialization.MapCodec;
 import com.wynprice.secretrooms.client.SecretModelData;
 import com.wynprice.secretrooms.server.blocks.states.SecretMappedModelState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
@@ -27,11 +26,18 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 import javax.annotation.Nullable;
 
 public class SecretTrapdoor extends SecretBaseBlock {
+    public static final com.mojang.serialization.MapCodec<SecretTrapdoor> CODEC = com.mojang.serialization.codecs.RecordCodecBuilder.mapCodec(instance -> instance.group(
+        com.mojang.serialization.Codec.BOOL.optionalFieldOf("iron", false).forGetter(block -> block.iron), propertiesCodec()
+    ).apply(instance, (flag, properties) -> new SecretTrapdoor(properties, flag)));
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends SecretTrapdoor> codec() { return CODEC; }
+
 
     private static final BooleanProperty OPEN = BlockStateProperties.OPEN;
     private static final EnumProperty<Half> HALF = BlockStateProperties.HALF;
@@ -45,8 +51,13 @@ public class SecretTrapdoor extends SecretBaseBlock {
     private static final VoxelShape BOTTOM_AABB = Block.box(0.001D, 0.001D, 0.001D, 15.999D, 3.0D, 15.999D);
     private static final VoxelShape TOP_AABB = Block.box(0.001D, 13.0D, 0.001D, 15.999D, 15.999D, 15.999D);
 
-    public SecretTrapdoor(Properties properties) {
+    private final boolean iron;
+
+    public SecretTrapdoor(Properties properties) { this(properties, false); }
+
+    public SecretTrapdoor(Properties properties, boolean iron) {
         super(properties);
+        this.iron = iron;
         this.registerDefaultState(this.defaultBlockState()
             .setValue(HORIZONTAL_FACING, Direction.NORTH)
             .setValue(OPEN, false)
@@ -56,7 +67,7 @@ public class SecretTrapdoor extends SecretBaseBlock {
     }
 
     @Override
-    protected BlockState createNewState(Block block, ImmutableMap<Property<?>, Comparable<?>> propertiesToValueMap, MapCodec<BlockState> codec) {
+    protected BlockState createNewState(Block block, Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertiesToValueMap, MapCodec<BlockState> codec) {
         return new SecretMappedModelState(block, propertiesToValueMap, codec);
     }
 
@@ -136,7 +147,7 @@ public class SecretTrapdoor extends SecretBaseBlock {
     }
 
     @Override
-    public boolean isPathfindable(BlockState state, BlockGetter worldIn, BlockPos pos, PathComputationType type) {
+    public boolean isPathfindable(BlockState state, PathComputationType type) {
         switch(type) {
             case LAND:
             case AIR:
@@ -147,8 +158,8 @@ public class SecretTrapdoor extends SecretBaseBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-        if (this.material == SecretBlocks.Materials.SRM_MATERIAL_IRON) {
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
+        if (this.iron) {
             return InteractionResult.PASS;
         } else {
             state = state.cycle(OPEN);
@@ -161,14 +172,10 @@ public class SecretTrapdoor extends SecretBaseBlock {
 
 
     protected void playSound(@Nullable Player player, Level worldIn, BlockPos pos, boolean p_185731_4_) {
-        if (p_185731_4_) {
-            int i = this.material == SecretBlocks.Materials.SRM_MATERIAL_IRON ? 1037 : 1007;
-            worldIn.levelEvent(player, i, pos, 0);
-        } else {
-            int j = this.material == SecretBlocks.Materials.SRM_MATERIAL_IRON ? 1036 : 1013;
-            worldIn.levelEvent(player, j, pos, 0);
-        }
-
+        var sound = this.iron
+            ? (p_185731_4_ ? net.minecraft.sounds.SoundEvents.IRON_TRAPDOOR_OPEN : net.minecraft.sounds.SoundEvents.IRON_TRAPDOOR_CLOSE)
+            : (p_185731_4_ ? net.minecraft.sounds.SoundEvents.WOODEN_TRAPDOOR_OPEN : net.minecraft.sounds.SoundEvents.WOODEN_TRAPDOOR_CLOSE);
+        worldIn.playSound(player, pos, sound, net.minecraft.sounds.SoundSource.BLOCKS, 1.0F, 0.9F + worldIn.random.nextFloat() * 0.1F);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.wynprice.secretrooms.server.blocks.states;
 
-import com.google.common.collect.ImmutableMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import com.mojang.serialization.MapCodec;
 import com.wynprice.secretrooms.server.blocks.SecretBaseBlock;
 import it.unimi.dsi.fastutil.objects.Object2ByteLinkedOpenHashMap;
@@ -8,7 +8,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.SupportType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -17,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SecretBaseState extends BlockState {
-    public SecretBaseState(Block block, ImmutableMap<Property<?>, Comparable<?>> propertiesToValueMap, MapCodec<BlockState> codec) {
+    public SecretBaseState(Block block, Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertiesToValueMap, MapCodec<BlockState> codec) {
         super(block, propertiesToValueMap, codec);
     }
 

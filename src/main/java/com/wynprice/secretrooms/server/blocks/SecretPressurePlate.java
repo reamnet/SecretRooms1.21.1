@@ -16,14 +16,23 @@ import net.minecraft.world.phys.AABB;
 import java.util.function.Predicate;
 
 public class SecretPressurePlate extends AbstractSecretPressurePlateBase {
+    public static final com.mojang.serialization.MapCodec<SecretPressurePlate> CODEC = com.mojang.serialization.codecs.RecordCodecBuilder.mapCodec(instance -> instance.group(
+        com.mojang.serialization.Codec.BOOL.optionalFieldOf("onlyPlayers", false).forGetter(block -> block.onlyPlayers), propertiesCodec()
+    ).apply(instance, (flag, properties) -> new SecretPressurePlate(properties, flag)));
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends SecretPressurePlate> codec() { return CODEC; }
+
 
     private static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 
+    private final boolean onlyPlayers;
     private final Predicate<Entity> entityPredicate;
-    public SecretPressurePlate(Properties properties, Predicate<Entity> powerMapper) {
+    public SecretPressurePlate(Properties properties, boolean onlyPlayers) {
         super(properties);
         this.registerDefaultState(this.defaultBlockState().setValue(POWERED, false));
-        this.entityPredicate = powerMapper;
+        this.onlyPlayers = onlyPlayers;
+        this.entityPredicate = entity -> !onlyPlayers || entity instanceof net.minecraft.world.entity.player.Player;
     }
 
     @Override

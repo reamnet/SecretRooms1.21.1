@@ -3,45 +3,52 @@ package com.wynprice.secretrooms.server.items;
 import com.wynprice.secretrooms.SecretRooms6;
 import com.wynprice.secretrooms.server.blocks.SecretBlocks;
 import net.minecraft.world.item.Item;
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.StandingAndWallBlockItem;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.Objects;
 
 public class SecretItems {
 
-    public static final DeferredRegister<Item> REGISTRY = DeferredRegister.create(ForgeRegistries.ITEMS, SecretRooms6.MODID);
+    public static final DeferredRegister<net.minecraft.world.item.ArmorMaterial> ARMOR_MATERIALS = DeferredRegister.create(Registries.ARMOR_MATERIAL, SecretRooms6.MODID);
+    public static final DeferredHolder<net.minecraft.world.item.ArmorMaterial, net.minecraft.world.item.ArmorMaterial> GOGGLES_MATERIAL = ARMOR_MATERIALS.register("true_vision_goggles", () ->
+        new net.minecraft.world.item.ArmorMaterial(java.util.Map.of(net.minecraft.world.item.ArmorItem.Type.HELMET, 0), 0,
+            net.minecraft.sounds.SoundEvents.ARMOR_EQUIP_CHAIN, () -> net.minecraft.world.item.crafting.Ingredient.EMPTY,
+            java.util.List.of(new net.minecraft.world.item.ArmorMaterial.Layer(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(SecretRooms6.MODID, "true_vision_goggles"))), 0, 0));
 
-    public static final RegistryObject<Item> GHOST_BLOCK = REGISTRY.register("ghost_block", () -> new SecretBlockItem(SecretBlocks.GHOST_BLOCK.get(), prop()));
-    public static final RegistryObject<Item> SECRET_STAIRS = REGISTRY.register("secret_stairs", () -> new SecretBlockItem(SecretBlocks.SECRET_STAIRS.get(), prop()));
-    public static final RegistryObject<Item> SECRET_LEVER = REGISTRY.register("secret_lever", () -> new SecretBlockItem(SecretBlocks.SECRET_LEVER.get(), prop()));
-    public static final RegistryObject<Item> SECRET_REDSTONE = REGISTRY.register("secret_redstone", () -> new SecretBlockItem(SecretBlocks.SECRET_REDSTONE.get(), prop()));
-    public static final RegistryObject<Item> ONE_WAY_GLASS = REGISTRY.register("one_way_glass", () -> new SecretBlockItem(SecretBlocks.ONE_WAY_GLASS.get(), prop()));
-    public static final RegistryObject<Item> SECRET_WOODEN_BUTTON = REGISTRY.register("secret_wooden_button", () -> new SecretBlockItem(SecretBlocks.SECRET_WOODEN_BUTTON.get(), prop()));
-    public static final RegistryObject<Item> SECRET_STONE_BUTTON = REGISTRY.register("secret_stone_button", () -> new SecretBlockItem(SecretBlocks.SECRET_STONE_BUTTON.get(), prop()));
-    public static final RegistryObject<Item> TORCH_LEVER = REGISTRY.register("torch_lever", () -> new StandingAndWallBlockItem(Objects.requireNonNull(SecretBlocks.TORCH_LEVER.get()), Objects.requireNonNull(SecretBlocks.WALL_TORCH_LEVER.get()), prop()));
-    public static final RegistryObject<Item> SECRET_PRESSURE_PLATE = REGISTRY.register("secret_pressure_plate", () -> new SecretBlockItem(SecretBlocks.SECRET_PRESSURE_PLATE.get(), prop()));
-    public static final RegistryObject<Item> SECRET_PLAYER_PRESSURE_PLATE = REGISTRY.register("secret_player_pressure_plate", () -> new SecretBlockItem(SecretBlocks.SECRET_PLAYER_PRESSURE_PLATE.get(), prop()));
-    public static final RegistryObject<Item> SECRET_DOOR = REGISTRY.register("secret_door", () -> new SecretDoubleBlockItem(SecretBlocks.SECRET_DOOR.get(), prop()));
-    public static final RegistryObject<Item> SECRET_IRON_DOOR = REGISTRY.register("secret_iron_door", () -> new SecretDoubleBlockItem(SecretBlocks.SECRET_IRON_DOOR.get(), prop()));
-    public static final RegistryObject<Item> SECRET_CHEST = REGISTRY.register("secret_chest", () -> new SecretBlockItem(SecretBlocks.SECRET_CHEST.get(), prop()));
-    public static final RegistryObject<Item> SECRET_TRAPDOOR = REGISTRY.register("secret_trapdoor", () -> new SecretBlockItem(SecretBlocks.SECRET_TRAPDOOR.get(), prop()));
-    public static final RegistryObject<Item> SECRET_IRON_TRAPDOOR = REGISTRY.register("secret_iron_trapdoor", () -> new SecretBlockItem(SecretBlocks.SECRET_IRON_TRAPDOOR.get(), prop()));
-    public static final RegistryObject<Item> SECRET_TRAPPED_CHEST = REGISTRY.register("secret_trapped_chest", () -> new SecretBlockItem(SecretBlocks.SECRET_TRAPPED_CHEST.get(), prop()));
-    public static final RegistryObject<Item> SECRET_GATE = REGISTRY.register("secret_gate", () -> new SecretBlockItem(SecretBlocks.SECRET_GATE.get(), prop()));
-    public static final RegistryObject<Item> SECRET_DUMMY_BLOCK = REGISTRY.register("secret_dummy_block", () -> new SecretBlockItem(SecretBlocks.SECRET_DUMMY_BLOCK.get(), prop()));
-    public static final RegistryObject<Item> SECRET_DAYLIGHT_DETECTOR = REGISTRY.register("secret_daylight_detector", () -> new SecretBlockItem(SecretBlocks.SECRET_DAYLIGHT_DETECTOR.get(), prop()));
-    public static final RegistryObject<Item> SECRET_OBSERVER = REGISTRY.register("secret_observer", () -> new SecretBlockItem(SecretBlocks.SECRET_OBSERVER.get(), prop()));
-    public static final RegistryObject<Item> SECRET_CLAMBER = REGISTRY.register("secret_clamber", () -> new SecretBlockItem(SecretBlocks.SECRET_CLAMBER.get(), prop()));
+    public static final DeferredRegister<Item> REGISTRY = DeferredRegister.create(Registries.ITEM, SecretRooms6.MODID);
 
-    public static final RegistryObject<Item> CAMOUFLAGE_PASTE = REGISTRY.register("camouflage_paste", () -> new Item(prop()));
-    public static final RegistryObject<Item> SWITCH_PROBE = REGISTRY.register("switch_probe", () -> new SwitchProbe(prop()));
+    public static final DeferredHolder<Item, Item> GHOST_BLOCK = REGISTRY.register("ghost_block", () -> new SecretBlockItem(SecretBlocks.GHOST_BLOCK.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_STAIRS = REGISTRY.register("secret_stairs", () -> new SecretBlockItem(SecretBlocks.SECRET_STAIRS.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_LEVER = REGISTRY.register("secret_lever", () -> new SecretBlockItem(SecretBlocks.SECRET_LEVER.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_REDSTONE = REGISTRY.register("secret_redstone", () -> new SecretBlockItem(SecretBlocks.SECRET_REDSTONE.get(), prop()));
+    public static final DeferredHolder<Item, Item> ONE_WAY_GLASS = REGISTRY.register("one_way_glass", () -> new SecretBlockItem(SecretBlocks.ONE_WAY_GLASS.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_WOODEN_BUTTON = REGISTRY.register("secret_wooden_button", () -> new SecretBlockItem(SecretBlocks.SECRET_WOODEN_BUTTON.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_STONE_BUTTON = REGISTRY.register("secret_stone_button", () -> new SecretBlockItem(SecretBlocks.SECRET_STONE_BUTTON.get(), prop()));
+    public static final DeferredHolder<Item, Item> TORCH_LEVER = REGISTRY.register("torch_lever", () -> new StandingAndWallBlockItem(Objects.requireNonNull(SecretBlocks.TORCH_LEVER.get()), Objects.requireNonNull(SecretBlocks.WALL_TORCH_LEVER.get()), prop(), Direction.DOWN));
+    public static final DeferredHolder<Item, Item> SECRET_PRESSURE_PLATE = REGISTRY.register("secret_pressure_plate", () -> new SecretBlockItem(SecretBlocks.SECRET_PRESSURE_PLATE.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_PLAYER_PRESSURE_PLATE = REGISTRY.register("secret_player_pressure_plate", () -> new SecretBlockItem(SecretBlocks.SECRET_PLAYER_PRESSURE_PLATE.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_DOOR = REGISTRY.register("secret_door", () -> new SecretDoubleBlockItem(SecretBlocks.SECRET_DOOR.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_IRON_DOOR = REGISTRY.register("secret_iron_door", () -> new SecretDoubleBlockItem(SecretBlocks.SECRET_IRON_DOOR.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_CHEST = REGISTRY.register("secret_chest", () -> new SecretBlockItem(SecretBlocks.SECRET_CHEST.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_TRAPDOOR = REGISTRY.register("secret_trapdoor", () -> new SecretBlockItem(SecretBlocks.SECRET_TRAPDOOR.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_IRON_TRAPDOOR = REGISTRY.register("secret_iron_trapdoor", () -> new SecretBlockItem(SecretBlocks.SECRET_IRON_TRAPDOOR.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_TRAPPED_CHEST = REGISTRY.register("secret_trapped_chest", () -> new SecretBlockItem(SecretBlocks.SECRET_TRAPPED_CHEST.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_GATE = REGISTRY.register("secret_gate", () -> new SecretBlockItem(SecretBlocks.SECRET_GATE.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_DUMMY_BLOCK = REGISTRY.register("secret_dummy_block", () -> new SecretBlockItem(SecretBlocks.SECRET_DUMMY_BLOCK.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_DAYLIGHT_DETECTOR = REGISTRY.register("secret_daylight_detector", () -> new SecretBlockItem(SecretBlocks.SECRET_DAYLIGHT_DETECTOR.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_OBSERVER = REGISTRY.register("secret_observer", () -> new SecretBlockItem(SecretBlocks.SECRET_OBSERVER.get(), prop()));
+    public static final DeferredHolder<Item, Item> SECRET_CLAMBER = REGISTRY.register("secret_clamber", () -> new SecretBlockItem(SecretBlocks.SECRET_CLAMBER.get(), prop()));
 
-    public static final RegistryObject<TrueVisionGoggles> TRUE_VISION_GOGGLES = REGISTRY.register("true_vision_goggles", () -> new TrueVisionGoggles(prop().durability(900)));
+    public static final DeferredHolder<Item, Item> CAMOUFLAGE_PASTE = REGISTRY.register("camouflage_paste", () -> new Item(prop()));
+    public static final DeferredHolder<Item, Item> SWITCH_PROBE = REGISTRY.register("switch_probe", () -> new SwitchProbe(prop()));
+
+    public static final DeferredHolder<Item, TrueVisionGoggles> TRUE_VISION_GOGGLES = REGISTRY.register("true_vision_goggles", () -> new TrueVisionGoggles(prop().durability(900)));
 
     private static Item.Properties prop() {
-        return new Item.Properties().tab(SecretRooms6.TAB);
+        return new Item.Properties();
     }
 }

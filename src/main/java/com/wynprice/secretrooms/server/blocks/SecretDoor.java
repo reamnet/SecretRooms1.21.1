@@ -1,6 +1,6 @@
 package com.wynprice.secretrooms.server.blocks;
 
-import com.google.common.collect.ImmutableMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import com.mojang.serialization.MapCodec;
 import com.wynprice.secretrooms.client.SecretModelData;
 import com.wynprice.secretrooms.client.world.DummyIWorld;
@@ -8,7 +8,6 @@ import com.wynprice.secretrooms.server.blocks.states.SecretMappedModelState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -30,14 +29,21 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class SecretDoor extends SecretBaseBlock {
+    public static final com.mojang.serialization.MapCodec<SecretDoor> CODEC = com.mojang.serialization.codecs.RecordCodecBuilder.mapCodec(instance -> instance.group(
+        com.mojang.serialization.Codec.BOOL.optionalFieldOf("iron", false).forGetter(block -> block.iron), propertiesCodec()
+    ).apply(instance, (flag, properties) -> new SecretDoor(properties, flag)));
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends SecretDoor> codec() { return CODEC; }
+
 
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
@@ -49,13 +55,18 @@ public class SecretDoor extends SecretBaseBlock {
     protected static final VoxelShape WEST_AABB = Block.box(13.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
     protected static final VoxelShape EAST_AABB = Block.box(0.0D, 0.0D, 0.0D, 3.0D, 16.0D, 16.0D);
 
-    public SecretDoor(Properties properties) {
+    private final boolean iron;
+
+    public SecretDoor(Properties properties) { this(properties, false); }
+
+    public SecretDoor(Properties properties, boolean iron) {
         super(properties);
+        this.iron = iron;
         this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH).setValue(OPEN, false).setValue(HINGE, DoorHingeSide.LEFT).setValue(POWERED, false).setValue(HALF, DoubleBlockHalf.LOWER));
     }
 
     @Override
-    protected BlockState createNewState(Block block, ImmutableMap<Property<?>, Comparable<?>> propertiesToValueMap, MapCodec<BlockState> codec) {
+    protected BlockState createNewState(Block block, Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertiesToValueMap, MapCodec<BlockState> codec) {
         return new SecretMappedModelState(block, propertiesToValueMap, codec);
     }
 
@@ -143,7 +154,7 @@ public class SecretDoor extends SecretBaseBlock {
 
 
     @Override
-    public void playerWillDestroy(Level worldIn, BlockPos pos, BlockState state, Player player) {
+    public BlockState playerWillDestroy(Level worldIn, BlockPos pos, BlockState state, Player player) {
         if (!worldIn.isClientSide && player.isCreative()) {
             DoubleBlockHalf doubleblockhalf = state.getValue(HALF);
             BlockPos blockpos = doubleblockhalf == DoubleBlockHalf.LOWER ? pos.above() : pos.below();
@@ -154,11 +165,11 @@ public class SecretDoor extends SecretBaseBlock {
                 mirror.ifPresent(blockState -> worldIn.levelEvent(player, 2001, blockpos, Block.getId(blockState)));
             }
         }
-        super.playerWillDestroy(worldIn, pos, state, player);
+        return super.playerWillDestroy(worldIn, pos, state, player);
     }
 
     @Override
-    public boolean isPathfindable(BlockState state, BlockGetter worldIn, BlockPos pos, PathComputationType type) {
+    public boolean isPathfindable(BlockState state, PathComputationType type) {
         switch(type) {
             case LAND:
             case AIR:
@@ -168,19 +179,19 @@ public class SecretDoor extends SecretBaseBlock {
         }
     }
 
-    private int getCloseSound() {
-        return this.material == SecretBlocks.Materials.SRM_MATERIAL_IRON ? 1011 : 1012;
+    private net.minecraft.sounds.SoundEvent getCloseSound() {
+        return this.iron ? net.minecraft.sounds.SoundEvents.IRON_DOOR_CLOSE : net.minecraft.sounds.SoundEvents.WOODEN_DOOR_CLOSE;
     }
 
-    private int getOpenSound() {
-        return this.material == SecretBlocks.Materials.SRM_MATERIAL_IRON ? 1005 : 1006;
+    private net.minecraft.sounds.SoundEvent getOpenSound() {
+        return this.iron ? net.minecraft.sounds.SoundEvents.IRON_DOOR_OPEN : net.minecraft.sounds.SoundEvents.WOODEN_DOOR_OPEN;
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockPos blockpos = context.getClickedPos();
-        if (blockpos.getY() < 255 && context.getLevel().getBlockState(blockpos.above()).canBeReplaced(context)) {
+        if (blockpos.getY() < context.getLevel().getMaxBuildHeight() - 1 && context.getLevel().getBlockState(blockpos.above()).canBeReplaced(context)) {
             Level world = context.getLevel();
             boolean flag = world.hasNeighborSignal(blockpos) || world.hasNeighborSignal(blockpos.above());
             return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection()).setValue(HINGE, this.getHingeSide(context)).setValue(POWERED, Boolean.valueOf(flag)).setValue(OPEN, Boolean.valueOf(flag)).setValue(HALF, DoubleBlockHalf.LOWER);
@@ -229,8 +240,8 @@ public class SecretDoor extends SecretBaseBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-        if (this.material == SecretBlocks.Materials.SRM_MATERIAL_IRON) {
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
+        if (this.iron) {
             return InteractionResult.FAIL;
         } else {
             BlockPos other = state.getValue(HALF) == DoubleBlockHalf.LOWER ? pos.above() : pos.below();
@@ -243,7 +254,7 @@ public class SecretDoor extends SecretBaseBlock {
 
             state = state.cycle(OPEN);
             worldIn.setBlock(pos, state, 10);
-            worldIn.levelEvent(player, state.getValue(OPEN) ? this.getOpenSound() : this.getCloseSound(), pos, 0);
+            worldIn.playSound(player, pos, state.getValue(OPEN) ? this.getOpenSound() : this.getCloseSound(), net.minecraft.sounds.SoundSource.BLOCKS, 1.0F, 0.9F + worldIn.random.nextFloat() * 0.1F);
 
             requestModelRefresh(worldIn, pos);
             requestModelRefresh(worldIn, other);
@@ -278,7 +289,7 @@ public class SecretDoor extends SecretBaseBlock {
     }
 
     private void playSound(Level p_196426_1_, BlockPos p_196426_2_, boolean p_196426_3_) {
-        p_196426_1_.levelEvent(null, p_196426_3_ ? this.getOpenSound() : this.getCloseSound(), p_196426_2_, 0);
+        p_196426_1_.playSound(null, p_196426_2_, p_196426_3_ ? this.getOpenSound() : this.getCloseSound(), net.minecraft.sounds.SoundSource.BLOCKS, 1.0F, 0.9F + p_196426_1_.random.nextFloat() * 0.1F);
     }
 
     @Override

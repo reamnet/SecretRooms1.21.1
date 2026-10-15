@@ -6,6 +6,11 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class SecretClamber extends GhostBlock {
+    public static final com.mojang.serialization.MapCodec<SecretClamber> CODEC = simpleCodec(SecretClamber::new);
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends SecretClamber> codec() { return CODEC; }
+
     public SecretClamber(Properties properties) {
         super(properties);
     }

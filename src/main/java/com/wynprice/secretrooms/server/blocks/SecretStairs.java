@@ -15,6 +15,11 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class SecretStairs extends SecretBaseBlock {
+    public static final com.mojang.serialization.MapCodec<SecretStairs> CODEC = simpleCodec(SecretStairs::new);
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends SecretStairs> codec() { return CODEC; }
+
     public SecretStairs(Properties properties) {
         super(properties);
     }
@@ -100,7 +105,7 @@ public class SecretStairs extends SecretBaseBlock {
     }
 
     @Override
-    public boolean isPathfindable(BlockState state, BlockGetter world, BlockPos pos, PathComputationType type) {
+    public boolean isPathfindable(BlockState state, PathComputationType type) {
         return false;
     }
 

@@ -6,7 +6,7 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraftforge.client.event.TextureStitchEvent;
+import net.neoforged.neoforge.client.event.TextureAtlasStitchedEvent;
 
 import java.util.Arrays;
 
@@ -14,16 +14,10 @@ import static java.lang.Float.floatToRawIntBits;
 import static java.lang.Float.intBitsToFloat;
 
 public class TrueVisionBakedQuad {
-    private static final ResourceLocation OVERLAY_LOCATION = new ResourceLocation(SecretRooms6.MODID, "block/overlay");
+    private static final ResourceLocation OVERLAY_LOCATION = ResourceLocation.fromNamespaceAndPath(SecretRooms6.MODID, "block/overlay");
     private static TextureAtlasSprite overlaySprite;
 
-    public static void onTextureStitch(TextureStitchEvent.Pre event) {
-        if(InventoryMenu.BLOCK_ATLAS.equals(event.getAtlas().location())) {
-            event.addSprite(OVERLAY_LOCATION);
-        }
-    }
-
-    public static void onTextureStitched(TextureStitchEvent.Post event) {
+    public static void onTextureStitched(TextureAtlasStitchedEvent event) {
         if(InventoryMenu.BLOCK_ATLAS.equals(event.getAtlas().location())) {
             overlaySprite = event.getAtlas().getSprite(OVERLAY_LOCATION);
         }
@@ -32,7 +26,7 @@ public class TrueVisionBakedQuad {
     public static BakedQuad generateQuad(BakedQuad quad) {
         int[] data = Arrays.copyOf(quad.getVertices(), quad.getVertices().length);
         for (int i = 0; i < 4; i++) {
-            int j = DefaultVertexFormat.BLOCK.getIntegerSize() * i;
+            int j = (DefaultVertexFormat.BLOCK.getVertexSize() / Integer.BYTES) * i;
 
             float x = intBitsToFloat(data[j]) + 0.001F*quad.getDirection().getStepX();
             float y = intBitsToFloat(data[j+1]) + 0.001F*quad.getDirection().getStepY();
@@ -61,8 +55,8 @@ public class TrueVisionBakedQuad {
                     break;
             }
 
-            data[j+4] = floatToRawIntBits(overlaySprite.getU(ui*16F));
-            data[j+5] = floatToRawIntBits(overlaySprite.getV(vi*16F));
+            data[j+4] = floatToRawIntBits(overlaySprite.getU(ui));
+            data[j+5] = floatToRawIntBits(overlaySprite.getV(vi));
 
             data[j+6] = (240 << 16) | 240;
         }

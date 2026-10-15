@@ -13,7 +13,6 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 
-import java.util.Random;
 
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
@@ -102,7 +101,7 @@ public abstract class AbstractSecretPressurePlateBase extends SecretBaseBlock {
     }
 
     @Override
-    public boolean shouldCheckWeakPower(BlockState state, LevelReader world, BlockPos pos, Direction side) {
+    public boolean shouldCheckWeakPower(BlockState state, net.minecraft.world.level.SignalGetter world, BlockPos pos, Direction side) {
         return this.getRedstoneStrength(state) == 0;
     }
 

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "torch_lever.json",
+  "key": {
+    "L": {
+      "item": "minecraft:lever"
+    },
+    "T": {
+      "item": "minecraft:torch"
+    }
+  },
+  "pattern": [
+    "T",
+    "L"
+  ],
+  "result": {
+    "count": 1,
+    "id": "secretroomsmod:torch_lever"
+  }
+}

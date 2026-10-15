@@ -24,7 +24,7 @@ public class SwitchProbeTooltipComponent implements TooltipComponent {
     public SwitchProbeTooltipComponent(FormattedCharSequence text, ItemStack stack) {
         this.text = text;
 
-        CompoundTag compound = stack.getTagElement(SwitchProbe.PROBE_HIT_DATA);
+        CompoundTag compound = SwitchProbe.getProbeData(stack);
         if(SecretItems.SWITCH_PROBE.get() != stack.getItem() || compound == null || compound.isEmpty()) {
             return;
         }

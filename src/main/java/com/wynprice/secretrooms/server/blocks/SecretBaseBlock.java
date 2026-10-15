@@ -1,6 +1,6 @@
 package com.wynprice.secretrooms.server.blocks;
 
-import com.google.common.collect.ImmutableMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import com.mojang.serialization.MapCodec;
 import com.wynprice.secretrooms.client.world.DelegateWorld;
 import com.wynprice.secretrooms.client.world.DummyIWorld;
@@ -35,7 +35,7 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -43,10 +43,10 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.extensions.common.IClientBlockExtensions;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -54,6 +54,11 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class SecretBaseBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
+
+    public static final MapCodec<SecretBaseBlock> CODEC = simpleCodec(SecretBaseBlock::new);
+
+    @Override
+    protected MapCodec<? extends SecretBaseBlock> codec() { return CODEC; }
 
     public static final BooleanProperty SOLID = BooleanProperty.create("solid");
 
@@ -75,14 +80,14 @@ public class SecretBaseBlock extends BaseEntityBlock implements SimpleWaterlogge
         return RenderShape.MODEL;
     }
 
-    protected BlockState createNewState(Block block, ImmutableMap<Property<?>, Comparable<?>> propertiesToValueMap, MapCodec<BlockState> codec) {
+    protected BlockState createNewState(Block block, Reference2ObjectArrayMap<Property<?>, Comparable<?>> propertiesToValueMap, MapCodec<BlockState> codec) {
         return new SecretBaseState(block, propertiesToValueMap, codec);
     }
 
     @Override
     public boolean placeLiquid(LevelAccessor worldIn, BlockPos pos, BlockState state, FluidState fluidStateIn) {
         boolean value = getValue(worldIn, pos,
-            (m, reader, p) -> m.getBlock() instanceof SimpleWaterloggedBlock && ((SimpleWaterloggedBlock) m.getBlock()).canPlaceLiquid(reader, pos, m, fluidStateIn.getType()),
+            (m, reader, p) -> m.getBlock() instanceof SimpleWaterloggedBlock && ((SimpleWaterloggedBlock) m.getBlock()).canPlaceLiquid(null, reader, pos, m, fluidStateIn.getType()),
             () -> false
         );
         if(value) {
@@ -102,8 +107,8 @@ public class SecretBaseBlock extends BaseEntityBlock implements SimpleWaterlogge
     }
 
     @Override
-    public ItemStack pickupBlock(LevelAccessor worldIn, BlockPos pos, BlockState state) {
-        ItemStack itemStack = SimpleWaterloggedBlock.super.pickupBlock(worldIn, pos, state);
+    public ItemStack pickupBlock(@Nullable net.minecraft.world.entity.player.Player player, LevelAccessor worldIn, BlockPos pos, BlockState state) {
+        ItemStack itemStack = SimpleWaterloggedBlock.super.pickupBlock(player, worldIn, pos, state);
         if(!itemStack.isEmpty()) {
             getMirrorData(worldIn, pos).ifPresent(d -> {
                 BlockState mirror = d.getBlockState();
@@ -144,7 +149,7 @@ public class SecretBaseBlock extends BaseEntityBlock implements SimpleWaterlogge
             if(newState != mirror) {
                 data.setBlockState(newState);
                 BlockEntity tileEntity = world.getBlockEntity(currentPos);
-                data.setTileEntityNBT(tileEntity != null ? tileEntity.serializeNBT() : null);
+                data.setTileEntityNBT(tileEntity != null ? tileEntity.saveWithFullMetadata(worldIn.registryAccess()) : null);
             }
         });
         return super.updateShape(stateIn, facing, facingState, worldIn, currentPos, facingPos);
@@ -163,13 +168,13 @@ public class SecretBaseBlock extends BaseEntityBlock implements SimpleWaterlogge
     }
 
     @Override
-    public @org.jetbrains.annotations.Nullable BlockPathTypes getBlockPathType(BlockState state, BlockGetter level, BlockPos pos, @org.jetbrains.annotations.Nullable Mob mob) {
+    public @org.jetbrains.annotations.Nullable PathType getBlockPathType(BlockState state, BlockGetter level, BlockPos pos, @org.jetbrains.annotations.Nullable Mob mob) {
         return getValue(level, pos, (mirror, reader, pos1) -> mirror.getBlockPathType(reader, pos1, mob), () -> super.getBlockPathType(state, level, pos, mob));
     }
 
     @Override
-    public boolean isPathfindable(BlockState state, BlockGetter world, BlockPos pos, PathComputationType type) {
-        return getValue(world, pos, (mirror, reader, pos1) -> mirror.isPathfindable(reader, pos, type), () -> super.isPathfindable(state, world, pos, type));
+    public boolean isPathfindable(BlockState state, PathComputationType type) {
+        return super.isPathfindable(state, type);
     }
 
     @Override
@@ -225,8 +230,7 @@ public class SecretBaseBlock extends BaseEntityBlock implements SimpleWaterlogge
         if ("net.minecraft.client.renderer.block.ModelBlockRenderer".equals(element.getClassName())) {
             Optional<BlockState> mirrorState = getMirrorState(world, pos);
             if(mirrorState.isPresent()) {
-                Boolean isAoModel = DistExecutor.callWhenOn(Dist.CLIENT, () -> () ->
-                        Minecraft.getInstance().getBlockRenderer().getBlockModel(mirrorState.get()).useAmbientOcclusion());
+                Boolean isAoModel = FMLEnvironment.dist == Dist.CLIENT ? Minecraft.getInstance().getBlockRenderer().getBlockModel(mirrorState.get()).useAmbientOcclusion() : null;
                 if(isAoModel != null) {
                     return result == 0 && isAoModel ? 0 : 1;
                 }
@@ -269,8 +273,7 @@ public class SecretBaseBlock extends BaseEntityBlock implements SimpleWaterlogge
         return true;
     }
 
-    @Override
-    public void initializeClient(Consumer<IClientBlockExtensions> consumer) {
+    public void registerClientExtensions(Consumer<IClientBlockExtensions> consumer) {
         consumer.accept(new IClientBlockExtensions() {
             @Override
             //ParticleEngine#crack

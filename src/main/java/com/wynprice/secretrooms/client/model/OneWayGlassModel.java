@@ -11,10 +11,10 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.ChunkRenderTypeSet;
-import net.minecraftforge.client.event.ModelEvent;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.ChunkRenderTypeSet;
+import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.bus.api.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

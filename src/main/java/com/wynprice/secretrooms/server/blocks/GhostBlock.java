@@ -14,6 +14,11 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 public class GhostBlock extends SecretBaseBlock {
+    public static final com.mojang.serialization.MapCodec<GhostBlock> CODEC = simpleCodec(GhostBlock::new);
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends GhostBlock> codec() { return CODEC; }
+
     public static final BooleanProperty NORMAL_CUBE = BooleanProperty.create("normal_cube");
 
     public GhostBlock(Properties properties) {

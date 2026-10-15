@@ -8,7 +8,6 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ObserverBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -18,9 +17,13 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 
 import javax.annotation.Nullable;
-import java.util.Random;
 
 public class SecretObserver extends SecretBaseBlock {
+    public static final com.mojang.serialization.MapCodec<SecretObserver> CODEC = simpleCodec(SecretObserver::new);
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends SecretObserver> codec() { return CODEC; }
+
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
 
@@ -92,7 +95,7 @@ public class SecretObserver extends SecretBaseBlock {
     }
 
     @Override
-    public boolean shouldCheckWeakPower(BlockState state, LevelReader world, BlockPos pos, Direction side) {
+    public boolean shouldCheckWeakPower(BlockState state, net.minecraft.world.level.SignalGetter world, BlockPos pos, Direction side) {
         return false;
     }
 

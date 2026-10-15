@@ -22,7 +22,7 @@ public class NoTintBakedQuadRetextured extends BakedQuad {
 
     protected void remapQuad() {
         for (int i = 0; i < 4; ++i) {
-            int off = DefaultVertexFormat.BLOCK.getIntegerSize() * i;
+            int off = (DefaultVertexFormat.BLOCK.getVertexSize() / Integer.BYTES) * i;
             this.vertices[off + 4] = Float.floatToRawIntBits(this.texture.getU(getUnInterpolatedU(Float.intBitsToFloat(this.vertices[off + 4]), this.sprite)));
             this.vertices[off + 5] = Float.floatToRawIntBits(this.texture.getV(getUnInterpolatedV(Float.intBitsToFloat(this.vertices[off + 5]), this.sprite)));
         }
@@ -30,12 +30,12 @@ public class NoTintBakedQuadRetextured extends BakedQuad {
 
     public static float getUnInterpolatedU(float u, TextureAtlasSprite sprite) {
         float f = sprite.getU1() - sprite.getU0();
-        return (u - sprite.getU0()) / f * 16.0F;
+        return (u - sprite.getU0()) / f;
     }
 
     public static float getUnInterpolatedV(float v, TextureAtlasSprite sprite) {
         float f = sprite.getV1() - sprite.getV0();
-        return (v - sprite.getV0()) / f * 16.0F;
+        return (v - sprite.getV0()) / f;
     }
 
     @Override

@@ -5,20 +5,16 @@ import com.wynprice.secretrooms.server.tileentity.SecretTileEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.DaylightDetectorBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.entity.DaylightDetectorBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -27,9 +23,13 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
 
 public class SecretDaylightDetector extends SecretBaseBlock {
+    public static final com.mojang.serialization.MapCodec<SecretDaylightDetector> CODEC = simpleCodec(SecretDaylightDetector::new);
+
+    @Override
+    public com.mojang.serialization.MapCodec<? extends SecretDaylightDetector> codec() { return CODEC; }
+
 
     public static final IntegerProperty POWER = BlockStateProperties.POWER;
     public static final BooleanProperty INVERTED = BlockStateProperties.INVERTED;
@@ -70,7 +70,7 @@ public class SecretDaylightDetector extends SecretBaseBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
         if (player.mayBuild()) {
             if (worldIn.isClientSide) {
                 return InteractionResult.SUCCESS;
@@ -81,12 +81,12 @@ public class SecretDaylightDetector extends SecretBaseBlock {
                 return InteractionResult.SUCCESS;
             }
         } else {
-            return super.use(state, worldIn, pos, player, handIn, hit);
+            return super.useWithoutItem(state, worldIn, pos, player, hit);
         }
     }
 
     @Override
-    public boolean shouldCheckWeakPower(BlockState state, LevelReader world, BlockPos pos, Direction side) {
+    public boolean shouldCheckWeakPower(BlockState state, net.minecraft.world.level.SignalGetter world, BlockPos pos, Direction side) {
         return false;
     }
 
